@@ -1,0 +1,14 @@
+{
+  "name": "trend-analyser-vercel-overlay",
+  "private": true,
+  "scripts": {
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0",
+    "pdfkit": "^0.14.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.18.0"
+  }
+}

@@ -1,0 +1,1 @@
+Overlay folder placeholder. The real content was created in the previous step.

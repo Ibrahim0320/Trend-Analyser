@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ResearchRun {
+  id              String   @id @default(cuid())
+  region          String
+  created_at      DateTime @default(now())
+  keywords_json   Json
+  source_counts   Json?
+  rising_json     Json?
+  leaders_json    Json?
+  citations_json  Json?
+  why_matters     String?
+  ahead_json      Json?
+}
+
+model Watchlist {
+  region       String   @id
+  keywords     Json
+  updated_at   DateTime @default(now())
+}
+
+model ThemeWeekly {
+  id              String   @id @default(cuid())
+  region          String
+  week            String
+  theme           String
+  heat            Float
+  momentum        Float
+  forecast_heat   Float?
+  confidence      Float?
+  act_watch_avoid String?
+  links           Json?
+  @@index([region, week, heat])
+}

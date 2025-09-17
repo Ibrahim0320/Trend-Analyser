@@ -1,27 +1,16 @@
-# AI Trend Dashboard — MVP Scaffold
+# Vercel Overlay (Serverless API + Prisma)
 
-## Run locally
-### Server
-```
-cd server
-npm i
-npm run start
-```
-### Client
-```
-cd client
-npm i
-npm run dev
-```
-Set `VITE_API_URL=http://localhost:4000` for the client to point at the server.
+This overlay adds Vercel-ready `/api` serverless functions, `/lib` helpers, and a Prisma schema for Postgres.
+
+## Steps
+
+1. Unzip into the root of your current project (next to your `client/` folder).
+2. Provision a Postgres DB (Neon or Supabase) and set `DATABASE_URL` in Vercel.
+3. Also set `YOUTUBE_API_KEY` in Vercel for YouTube search.
+4. Deploy on Vercel. The API endpoints will be available under `/api/*`.
 
 ## Endpoints
-- POST /api/trends/upload  (multipart/form-data: file=CSV)
-- GET  /api/trends/top?type=hashtag|color|item&region=Nordics|FR&week=YYYY-Www&limit=20
-- GET  /api/trends/timeseries?entity=%23trenchcoat&type=hashtag&region=Nordics&weeks=8
-- GET  /api/trends/cooccur?left=items&right=colors&region=Nordics&week=YYYY-Www
-- GET  /api/creators/top?entity=%23loafers&region=Nordics&week=YYYY-Www
-- POST /api/trends/summary/generate
-- GET  /api/trends/summary/latest?region=Nordics
-
-SQLite file: `server/trends.sqlite` (auto-created).
+- `POST /api/research/run`
+- `GET  /api/themes/top`
+- `GET  /api/briefs/pdf`
+- `GET/POST/PATCH/DELETE /api/research/watchlist`
