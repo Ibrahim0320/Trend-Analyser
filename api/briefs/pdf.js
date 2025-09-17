@@ -1,17 +1,21 @@
 // api/briefs/pdf.js
-// ✅ Node runtime (NOT edge) so we can use Prisma + pdfkit
-export const config = { runtime: 'nodejs18.x' }
+// ✅ Run as a Node Function (serverless on Vercel), not Edge.
+export const config = { runtime: 'nodejs' }
 
 import prisma from '../../lib/db.js'
 
 export default async function handler(req, res) {
   try {
-    // Lazy-load pdfkit to keep the cold start smaller
+    // Lazy-load pdfkit to keep cold start small
     const { default: PDFDocument } = await import('pdfkit')
 
-    const region = (req.query?.region || new URL(req.url, 'http://x').searchParams.get('region') || 'All').toString()
+    // region from query (?region=Nordics) — works with Vercel Node runtime
+    const region =
+      (req.query?.region ||
+        new URL(req.url, 'http://x').searchParams.get('region') ||
+        'All').toString()
 
-    // Read latest run + themes
+    // Latest run & top themes
     const latestRun = await prisma.researchRun.findFirst({
       where: { region },
       orderBy: { created_at: 'desc' }
@@ -26,11 +30,14 @@ export default async function handler(req, res) {
     // Build PDF in memory
     const doc = new PDFDocument({ size: 'A4', margin: 48 })
     const chunks = []
-    doc.on('data', (d) => chunks.push(d))
+    doc.on('data', d => chunks.push(d))
     doc.on('end', () => {
       const pdf = Buffer.concat(chunks)
       res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename="trend-brief-${region}.pdf"`)
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="trend-brief-${region}.pdf"`
+      )
       res.status(200).send(pdf)
     })
 
@@ -57,3 +64,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Server error' })
   }
 }
+
