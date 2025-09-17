@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import './styles.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// ✅ Same-origin by default on Vercel; keep VITE_API_URL only if you run a separate API.
+const API_BASE = import.meta.env.VITE_API_URL || ''
 const API = (p) => `${API_BASE}${p}`
 
 const H = ({children}) => <h1 style={{fontSize:28, fontWeight:800, marginBottom:12}}>{children}</h1>
@@ -29,39 +30,50 @@ function ResearchPanel({region}) {
   const resetChips = () => setChips([])
 
   const run = async () => {
-    setBusy(true); setNote("Researching live sources…")
-    const res = await fetch(API('/api/research/run'), {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({region, keywords: chips})
-    })
-    if (res.ok) {
-      const d = await res.json(); setData(d.data); setNote("")
-      fetchTopThemes()
-    } else setNote("Research request failed")
-    setBusy(false)
+    try {
+      setBusy(true); setNote("Researching live sources…")
+      const res = await fetch(API('/api/research/run'), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({region, keywords: chips})
+      })
+      if (!res.ok) throw new Error('Research request failed')
+      const d = await res.json()
+      setData(d.data)
+      setNote("")
+      fetchTopThemes() // recompute/read snapshot
+    } catch (e) {
+      setNote(e.message || 'Research request failed')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const saveWatchlistAndRefresh = async () => {
-    setBusy(true); setNote("Saving watchlist & refreshing…")
-    await fetch(API('/api/research/watchlist'), {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({region, keywords: chips})
-    })
-    await loadWatchlist()
-    const r = await fetch(API('/api/research/refresh'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({region}) })
-    if (r.ok) {
-      const d = await r.json(); setTopThemes(d.themes || []); setNote("")
-    } else setNote("Refresh failed")
-    setBusy(false)
+    try {
+      setBusy(true); setNote("Saving watchlist & re-running…")
+      const r = await fetch(API('/api/research/watchlist'), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({region, keywords: chips})
+      })
+      if (!r.ok) throw new Error('Save failed')
+      await loadWatchlist()
+      // ✅ No /api/research/refresh endpoint in overlay; just run research again.
+      await run()
+    } catch (e) {
+      setNote(e.message || 'Refresh failed')
+      setBusy(false)
+    }
   }
 
   const fetchTopThemes = async () => {
-    const r = await fetch(API(`/api/themes/top?region=${region}&limit=10`))
+    const r = await fetch(API(`/api/themes/top?region=${encodeURIComponent(region)}&limit=10`))
     if (r.ok) { const d = await r.json(); setTopThemes(d.data || []) }
   }
 
   const loadWatchlist = async () => {
-    const r = await fetch(API(`/api/research/watchlist?region=${region}`))
+    const r = await fetch(API(`/api/research/watchlist?region=${encodeURIComponent(region)}`))
     if (r.ok) { const d = await r.json(); setWatchlist(d.keywords || []) }
   }
 
@@ -77,11 +89,12 @@ function ResearchPanel({region}) {
 
   const clearWatchlist = async () => {
     if (!confirm('Clear all saved keywords for this region?')) return;
-    const r = await fetch(API(`/api/research/watchlist?region=${region}`), { method:'DELETE' })
+    const r = await fetch(API(`/api/research/watchlist?region=${encodeURIComponent(region)}`), { method:'DELETE' })
     if (r.ok) { setWatchlist([]) }
   }
 
   const copyWatchlistToWorking = () => setChips(watchlist.slice())
+
   const downloadBrief = async () => {
     const r = await fetch(API(`/api/briefs/pdf?region=${encodeURIComponent(region)}`))
     if (!r.ok) return;
@@ -142,7 +155,7 @@ function ResearchPanel({region}) {
           <button className="button" onClick={addChip}>Add</button>
           <button className="button" onClick={resetChips}>Reset working list</button>
           <button className="button accent" onClick={run} disabled={busy}>{busy ? "Running…" : "Run research"}</button>
-          <button className="button" onClick={saveWatchlistAndRefresh} disabled={busy}>Replace saved ← working & Refresh</button>
+          <button className="button" onClick={saveWatchlistAndRefresh} disabled={busy}>Replace saved ← working & Re-run</button>
           <button className="button" onClick={copyWatchlistToWorking} disabled={!watchlist.length}>Use saved → working</button>
           <button className="button" onClick={()=>setShowCites(true)} disabled={!data || !data.citations?.length}>Citations</button>
           <button className="button" onClick={downloadBrief}>Download Brief (PDF)</button>
@@ -214,15 +227,15 @@ function ResearchPanel({region}) {
       {/* What’s rising */}
       <div className="card" style={{marginBottom:12}}>
         <h3 style={{marginBottom:8}}>What’s rising</h3>
-        { (data?.rising || []).length ? (
-          <ul className="ul">{data.rising.map((b,i)=><li key={i} className="li">{b}</li>)}</ul>
+        { (bullets || []).length ? (
+          <ul className="ul">{bullets.map((b,i)=><li key={i} className="li">{b}</li>)}</ul>
         ) : <div className="small">—</div>}
       </div>
 
       {/* Leaders */}
       <div className="card" style={{marginBottom:12}}>
         <h3 style={{marginBottom:8}}>Leaders (ranked)</h3>
-        { (data?.leaders || []).length ? (
+        { (leaders || []).length ? (
           <div className="card inset">
             <table className="table">
               <thead>
@@ -236,7 +249,7 @@ function ResearchPanel({region}) {
                 </tr>
               </thead>
               <tbody>
-                {data.leaders.slice(0,12).map((l,idx)=>(
+                {leaders.slice(0,12).map((l,idx)=>(
                   <tr key={`${l.entity}-${l.type}-${idx}`}>
                     <td>{l.entity}</td>
                     <td>{l.type}</td>
