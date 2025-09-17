@@ -1,7 +1,8 @@
 {
-  "name": "trend-analyser-vercel-overlay",
+  "name": "trend-analyser",
   "private": true,
   "scripts": {
+    "build": "npm --prefix client ci && npm --prefix client run build",
     "postinstall": "prisma generate"
   },
   "dependencies": {
