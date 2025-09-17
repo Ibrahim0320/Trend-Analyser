@@ -1,0 +1,12 @@
+[services.trend-analyser]
+rootDirectory = "server"
+startCommand = "node index.js"
+
+[services.trend-analyser.env]
+PORT = "4000"
+SQLITE_PATH = "/data/trends.db"
+
+[[services.trend-analyser.volumes]]
+name = "data"
+mountPath = "/data"
+sizeGB = 1
