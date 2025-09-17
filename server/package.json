@@ -1,0 +1,25 @@
+{
+  "name": "ai-trend-dashboard-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.0",
+    "dayjs": "^1.11.11",
+    "dotenv": "^17.2.2",
+    "express": "^4.19.2",
+    "google-trends-api": "^4.9.2",
+    "googleapis": "^159.0.0",
+    "multer": "^1.4.5-lts.1",
+    "pdfkit": "^0.17.2",
+    "rss-parser": "^3.13.0",
+    "snoowrap": "^1.23.0",
+    "sqlite": "^4.2.1",
+    "sqlite3": "^5.1.7"
+  }
+}

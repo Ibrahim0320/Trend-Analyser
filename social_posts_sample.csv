@@ -1,0 +1,5 @@
+platform,post_id,post_url,author,author_followers,ts_iso,language,text,hashtags,like_count,comment_count,share_count,save_count,video_views,geo_country
+instagram,IG1,https://ig.example/IG1,@elin,18000,2025-08-20T10:00:00Z,en,Scandi blazer with loafers in beige,#scandi|minimal|#blazer|#loafers,950,80,40,120,12000,SE
+tiktok,TT2,https://tt.example/TT2,@mina,52000,2025-08-22T17:30:00Z,en,Red pop with trench coat #parisstyle,#trenchcoat|#red|#parisstyle,2100,160,120,300,45000,FR
+instagram,IG3,https://ig.example/IG3,@oskar,34000,2025-08-25T09:00:00Z,en,Navy knit and loafers #scandiminimal,#knit|#loafers,1200,90,60,150,18000,SE
+tiktok,TT4,https://tt.example/TT4,@lea,15000,2025-08-28T12:15:00Z,en,Beige trench and tote bag look,#trench|#tote,600,40,20,90,9000,FR
