@@ -1,29 +1,32 @@
 // api/briefs/pdf.js
-import PDFDocument from 'pdfkit'
-import prisma from '../../lib/db.js'
+// ✅ Node runtime (NOT edge) so we can use Prisma + pdfkit
+export const config = { runtime: 'nodejs18.x' }
 
-export const config = { runtime: 'edge' } // smaller cold start on Vercel Edge
+import prisma from '../../lib/db.js'
 
 export default async function handler(req, res) {
   try {
-    const { searchParams } = new URL(req.url)
-    const region = (searchParams.get('region') || 'All').toString()
+    // Lazy-load pdfkit to keep the cold start smaller
+    const { default: PDFDocument } = await import('pdfkit')
 
-    // Pull the latest run & themes
+    const region = (req.query?.region || new URL(req.url, 'http://x').searchParams.get('region') || 'All').toString()
+
+    // Read latest run + themes
     const latestRun = await prisma.researchRun.findFirst({
       where: { region },
       orderBy: { created_at: 'desc' }
     })
+
     const themes = await prisma.theme.findMany({
       where: { region },
       orderBy: [{ week_of: 'desc' }, { heat: 'desc' }],
       take: 10
     })
 
-    // Build simple PDF
+    // Build PDF in memory
     const doc = new PDFDocument({ size: 'A4', margin: 48 })
     const chunks = []
-    doc.on('data', d => chunks.push(d))
+    doc.on('data', (d) => chunks.push(d))
     doc.on('end', () => {
       const pdf = Buffer.concat(chunks)
       res.setHeader('Content-Type', 'application/pdf')
@@ -39,7 +42,8 @@ export default async function handler(req, res) {
     doc.fillColor('#000').fontSize(14).text('Top Movers (themes)')
     doc.moveDown(0.5)
     themes.forEach((t, i) => {
-      doc.fontSize(11).text(`${i+1}. ${t.label} — heat ${Math.round(t.heat)}${t.momentum>0?' ↑':' ↓'}`)
+      const arrow = t.momentum > 0 ? '↑' : '↓'
+      doc.fontSize(11).text(`${i + 1}. ${t.label} — heat ${Math.round(t.heat)} ${arrow}`)
     })
     doc.moveDown(1)
 
@@ -48,8 +52,8 @@ export default async function handler(req, res) {
     doc.fontSize(11).text(latestRun?.keywords_json?.join(', ') || '—')
 
     doc.end()
-  } catch (e) {
-    console.error('briefs/pdf error', e)
-    return res.status(500).json({ error: 'Server error' })
+  } catch (err) {
+    console.error('briefs/pdf error', err)
+    res.status(500).json({ error: 'Server error' })
   }
 }
