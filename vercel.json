@@ -1,21 +1,15 @@
 {
-  "functions": {
-    "api/**/*.js": { "runtime": "nodejs20.x" }
-  },
+  "version": 2,
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" },
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "client/dist",
-        "buildCommand": "npm ci && npm run build"
-      }
-    }
+    { "src": "client/index.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "^/api/(.*)$", "dest": "/api/$1" },
-    { "src": "^/(.*)\\.(ico|png|jpg|jpeg|svg|gif|webp)$", "dest": "/client/dist/$1.$2" },
-    { "src": "^(?!/api)(.*)$", "dest": "/client/dist/index.html" }
-  ]
+    { "src": "^/api/.*", "dest": "/api" },
+    { "src": "/(.*)", "dest": "/client/index.html" }
+  ],
+  "env": {
+    "DATABASE_URL": "@DATABASE_URL",
+    "OPENAI_API_KEY": "@OPENAI_API_KEY"
+  }
 }
