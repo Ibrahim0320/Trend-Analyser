@@ -1,12 +1,23 @@
 {
-  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "client/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "client/dist",
+        "buildCommand": "npm ci && npm run build"
+      }
+    }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/client/dist/index.html" }
+    { "src": "^/api/(.*)$", "dest": "/api/$1" },
+    { "src": "^/(.*)\\.(ico|png|jpg|jpeg|svg|gif|webp)$", "dest": "/client/dist/$1.$2" },
+    { "src": "^(?!/api)(.*)$", "dest": "/client/dist/index.html" }
   ]
 }
