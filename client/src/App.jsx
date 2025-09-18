@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import './styles.css'
 
-// ✅ Same-origin by default on Vercel; keep VITE_API_URL only if you run a separate API.
-const API_BASE = import.meta.env.VITE_API_URL || ''
-const API = (p) => `${API_BASE}${p}`
+// Same-origin by default on Vercel; override locally only
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const API = (p) => `${API_BASE}${p}`;
+
 
 const H = ({children}) => <h1 style={{fontSize:28, fontWeight:800, marginBottom:12}}>{children}</h1>
 
